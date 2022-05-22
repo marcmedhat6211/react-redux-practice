@@ -1,7 +1,8 @@
 import { Fragment, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 // import { uiActions } from "./store/ui-slice";
-import { sendCartData } from "./store/cart-slice";
+import { sendCartData } from "./store/cart-actions";
+import { fetchCartData } from "./store/cart-actions";
 
 import Cart from "./components/Cart/Cart";
 import Layout from "./components/Layout/Layout";
@@ -19,6 +20,13 @@ function App() {
   const cartIsVisible = useSelector((state) => state.ui.cartIsVisible);
   const notification = useSelector((state) => state.ui.notification);
   const cart = useSelector((state) => state.cart);
+
+  /**
+   * This solution is not optimum because we use the replaceCart action in the action creator fetchCartData so we're changing the cart which changes the cart which makes the 2nd use effect run because its dependency changed
+   */
+  useEffect(() => {
+    dispatch(fetchCartData());
+  }, [dispatch]);
 
   /**
    * This solution however has a main problem and issue, and it is that the use effect function will run whenever the application starts wich will make the cart in the db gets updated with an empty cart
@@ -68,7 +76,9 @@ function App() {
     //   );
     // });
 
-    dispatch(sendCartData(cart));
+    if (cart.changed) {
+      dispatch(sendCartData(cart));
+    }
   }, [cart, dispatch]);
 
   return (
